@@ -198,12 +198,16 @@ nav h1 a {
   width: 100%;
   z-index: 1000;
 }
-.inside .restaurant{
+.inside #maincontent{
   margin-top:131px;
 }
+#map-container{
+  padding: 10px;
+}
 .inside #map-container {
-  background: blue none repeat scroll 0 0;
+  /* background: blue none repeat scroll 0 0; */
   height: 200px;
+
   /* height: 87%;
   position: fixed;
   right: 0;
@@ -294,8 +298,23 @@ nav h1 a {
     grid-template-columns: 50% 50%;
     grid-template-areas: "filter-result map-container";
   }
-  #map-container{
+  .inside #map-container{
     grid-area: map-container;
+    height: 500px;
+  }
+  #filter-result{
+    grid-area: filter-result;
+  }
+}
+
+@media screen and (min-width:1600px){
+  #maincontent{
+    grid-template-columns: 67% 33%;
+    grid-template-areas: "filter-result map-container";
+  }
+  .inside #map-container{
+    grid-area: map-container;
+    height: 500px;
   }
   #filter-result{
     grid-area: filter-result;
