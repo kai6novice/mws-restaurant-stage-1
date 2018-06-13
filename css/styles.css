@@ -288,3 +288,16 @@ nav h1 a {
 #restaurant-hours td {
   color: #666;
 }
+
+@media screen and (min-width:620px){
+  #maincontent{
+    grid-template-columns: 50% 50%;
+    grid-template-areas: "filter-result map-container";
+  }
+  #map-container{
+    grid-area: map-container;
+  }
+  #filter-result{
+    grid-area: filter-result;
+  }
+}
