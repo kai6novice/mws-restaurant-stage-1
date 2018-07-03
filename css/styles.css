@@ -311,6 +311,7 @@ nav h1 a {
   #maincontent{
     grid-template-columns: 67% 33%;
     grid-template-areas: "filter-result map-container";
+    /* grid-auto-flow: column; */
   }
   .inside #map-container{
     grid-area: map-container;
@@ -319,4 +320,13 @@ nav h1 a {
   #filter-result{
     grid-area: filter-result;
   }
+  #restaurants-list{
+    display:inline-grid;
+    grid-template-columns: 50% 50%;
+    grid-auto-flow: row;
+  }
+  #restaurants-list li{
+    margin: 0px;
+  }
+
 }
