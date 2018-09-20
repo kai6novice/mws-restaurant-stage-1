@@ -46,7 +46,7 @@ article, aside, canvas, details, figcaption, figure, footer, header, hgroup, men
   color: #aaa;
   font-size: 8pt;
   letter-spacing: 1px;
-  /* padding: 25px; */
+  padding: 15px;
   text-align: center;
   text-transform: uppercase;
 }
@@ -304,40 +304,43 @@ nav h1 a {
     grid-template-columns: 50% 50%;
     grid-template-areas: "filter-result map-container";
   }
-  #maincontent.index{
-    height: calc(100vh - 100px);
+  #maincontent{
+    height: calc(100vh - 125px);
+  }
+  .inside #maincontent{
+    height: initial;
   }
   #map-container{
     grid-area: map-container;
-    height:calc(100vh - 120px);
+    height:calc(100vh - 145px);
   }
   .inside #map-container{
-    height:calc(100vh - 150px);
+    height: 550px;
   }
   #filter-result{
     grid-area: filter-result;
   }
   #map{
-    height:calc(100vh - 120px);
+    height:calc(100vh - 145px);
   }
   .inside #map{
-    height:calc(100vh - 150px);
+    height:550px;
   }
   #restaurants-list{
     display:flex;
     flex-wrap: wrap;
-    height: calc(100vh - 350px);
+    height: calc(100vh - 375px);
     overflow-y: scroll;
   }
-  .index #restaurants-list{
-    height: calc(100vh - 350px);
-    overflow-y: scroll;
+  .inside #restaurants-list{
+    height: initial;
+    overflow-y: none;
   }
 
 }
-@media screen and (min-width:940px){
-  .index #restaurants-list{
-    height: calc(100vh - 296px);
+@media screen and (min-width:929px){
+  #restaurants-list{
+    height: calc(100vh - 319px);
   }
 }
 @media screen and (min-width:1560px){
