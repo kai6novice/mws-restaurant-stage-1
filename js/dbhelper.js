@@ -155,10 +155,27 @@ class DBHelper {
   }
 
   /**
+   * Return responsive image setting
+   */
+  static responsiveImageForRestaurant(restaurant){
+    const restaurantPhotoURL = restaurant.photograph;
+    let returnImage = '';
+    if(restaurantPhotoURL){
+      const fileName = restaurantPhotoURL.substring(0, restaurantPhotoURL.lastIndexOf('.'));
+      const fileExtension = restaurantPhotoURL.substring(restaurantPhotoURL.lastIndexOf('.'));
+      if(fileName && fileName.length>0 && fileExtension && fileExtension.length>0){
+        returnImage = "/img/"+fileName+"-low"+fileExtension+" "+"400w"+", "+"/img/"+fileName+"-mid"+fileExtension+" "+"600w"+", "+"/img/"+fileName+fileExtension+" "+"800w";
+      }
+      console.log('responsiveImageURL:'+returnImage);
+    }
+    return returnImage;
+  }
+
+  /**
    * Map marker for a restaurant.
    */
   static mapMarkerForRestaurant(restaurant, map) {
-    // https://leafletjs.com/reference-1.3.0.html#marker  
+    // https://leafletjs.com/reference-1.3.0.html#marker
     const marker = new L.marker([restaurant.latlng.lat, restaurant.latlng.lng],
       {title: restaurant.name,
       alt: restaurant.name,
@@ -166,7 +183,7 @@ class DBHelper {
       })
       marker.addTo(newMap);
     return marker;
-  } 
+  }
   /* static mapMarkerForRestaurant(restaurant, map) {
     const marker = new google.maps.Marker({
       position: restaurant.latlng,
