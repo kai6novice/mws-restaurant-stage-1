@@ -22,8 +22,11 @@ a {
 	text-decoration: none;
 }
 a:hover, a:focus {
-	color: #3397db;
-	text-decoration: none;
+  color: #F5B4C1;
+  font-weight: bolder;
+  text-decoration: none;
+  padding: 3px;
+  border: 2px solid #DAD7CE;
 }
 a img{
 	border: none 0px #fff;
@@ -65,6 +68,7 @@ nav {
 nav h1 {
   margin: auto;
 }
+
 nav h1 a {
   color: #fff;
   font-size: 14pt;
@@ -101,15 +105,20 @@ nav h1 a {
 }
 
 /* Add a color on mouse-over */
-#breadcrumb li a:hover {
+#breadcrumb li a:hover,#breadcrumb li a:focus  {
     color: #01447e;
     text-decoration: underline;
+    border: 2px solid black;
 }
 /* ====================== Map ====================== */
 #map {
   height: 400px;
   width: 100%;
   background-color: #ccc;
+}
+#map img:focus, #map img:hover, #map a:focus,
+#map a:hover {
+  border:2px solid black;
 }
 /* ====================== Restaurant Filtering ====================== */
 .filter-options {
@@ -319,6 +328,9 @@ nav h1 a {
   }
   #filter-result{
     grid-area: filter-result;
+  }
+  #filter-result select:hover, #filter-result select:focus, #filter-result #restaurants-list a:hover,#filter-result #restaurants-list a:focus{
+    border: 2px solid black;
   }
   #map{
     height:calc(100vh - 145px);

@@ -36,6 +36,7 @@ fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
     const option = document.createElement('option');
     option.innerHTML = neighborhood;
     option.value = neighborhood;
+    option.setAttribute('aria-label',neighborhood);
     select.append(option);
   });
 }
@@ -64,6 +65,7 @@ fillCuisinesHTML = (cuisines = self.cuisines) => {
     const option = document.createElement('option');
     option.innerHTML = cuisine;
     option.value = cuisine;
+    option.setAttribute('aria-label',cuisine);
     select.append(option);
   });
 }
@@ -162,7 +164,7 @@ createRestaurantHTML = (restaurant) => {
   const srcsetValue=DBHelper.responsiveImageForRestaurant(restaurant);
   if(srcsetValue.length>0){
     image.setAttribute('srcset',srcsetValue);
-    image.setAttribute('sizes','350w 50vw');
+    //image.setAttribute('sizes','350w 50vw');
   }
   image.alt = restaurant.name+'\'s thumbnail';
   li.append(image);
@@ -182,6 +184,7 @@ createRestaurantHTML = (restaurant) => {
   const more = document.createElement('a');
   more.innerHTML = 'View Details';
   more.href = DBHelper.urlForRestaurant(restaurant);
+  more.setAttribute('aria-label','View Details for ' + restaurant.name + 'restaurant.')
   li.append(more)
 
   return li
