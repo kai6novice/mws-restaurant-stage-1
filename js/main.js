@@ -11,7 +11,75 @@ document.addEventListener('DOMContentLoaded', (event) => {
   initMap(); // added
   fetchNeighborhoods();
   fetchCuisines();
+  registerServiceWorker();
 });
+
+/**
+ * Register Service Worker and allow it to cache file
+ */
+registerServiceWorker = () => {
+  console.log('start register service worker');
+  if (navigator.serviceWorker) {
+    console.log('found navigator.serviceWorker');
+    let promiseToRegisterServiceWorker = navigator.serviceWorker.register('/serviceWorker.js', {
+      scope: '/'
+    });
+    console.log('registered the service worker');
+    promiseToRegisterServiceWorker.then(serviceWorkerRegistration => {
+      console.log('got service worker registration');
+      if (!navigator.serviceWorker.controller) {
+        console.log('cannot find service worker controller');
+        return;
+      }
+      //call serviceWorkerRegistration.update() to force update
+      if (serviceWorkerRegistration.installing) {
+        let serviceWorker = serviceWorkerRegistration.installing;
+        //serviceWorker.state;
+        //  return "installing";
+        //  return "installed"
+        console.log('service worker is installing');
+        serviceWorker.addEventListener('statechange', () => {
+          if (serviceWorker.state === 'installed') {
+            //to auto activate the new worker
+            //worker.postMessage({action: 'skipWaiting'});
+            //or somehow trigger service worker's (sw.js) self.skipWaiting() function
+            console.log('listening to installed state');
+          }
+        });
+      }
+      if (serviceWorkerRegistration.waiting) {
+        let serviceWorker = serviceWorkerRegistration.waiting;
+        //serviceWorker.state;
+        console.log('service worker is waiting');
+      }
+      if (serviceWorkerRegistration.active) {
+        let serviceWorker = serviceWorkerRegistration.active;
+        //serviceWorker.state;
+        //  return "activating"
+        //  return "activated"
+        console.log('service worker is active');
+      }
+      serviceWorkerRegistration.addEventListener('updatefound', () => {
+        console.log('listening to update found');
+        let serviceWorker = serviceWorkerRegistration.installing;
+        serviceWorker.addEventListener('statechange', () => {
+          if (serviceWorker.state === 'installed') {
+            console.log('listening to state change and got installed');
+          }
+        });
+      });
+    }).catch(err => {
+      console.log('Failed to register serviceWorker.js');
+      console.log(err);
+    });
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      console.log('listening to controllerchange');
+      // This fires when the service worker controlling this page
+     // changes, eg a new worker has skipped waiting and become
+     // the new active worker.
+   });
+  }
+}
 
 /**
  * Fetch all neighborhoods and set their HTML.
@@ -36,7 +104,7 @@ fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
     const option = document.createElement('option');
     option.innerHTML = neighborhood;
     option.value = neighborhood;
-    option.setAttribute('aria-label',neighborhood);
+    option.setAttribute('aria-label', neighborhood);
     select.append(option);
   });
 }
@@ -65,7 +133,7 @@ fillCuisinesHTML = (cuisines = self.cuisines) => {
     const option = document.createElement('option');
     option.innerHTML = cuisine;
     option.value = cuisine;
-    option.setAttribute('aria-label',cuisine);
+    option.setAttribute('aria-label', cuisine);
     select.append(option);
   });
 }
@@ -75,10 +143,10 @@ fillCuisinesHTML = (cuisines = self.cuisines) => {
  */
 initMap = () => {
   self.newMap = L.map('map', {
-        center: [40.722216, -73.987501],
-        zoom: 12,
-        scrollWheelZoom: false
-      });
+    center: [40.722216, -73.987501],
+    zoom: 12,
+    scrollWheelZoom: false
+  });
   L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.jpg70?access_token={mapboxToken}', {
     mapboxToken: 'pk.eyJ1Ijoia2FpNm5vdmljZSIsImEiOiJjamljZjJ0ZHcwMGJ5M3Ztb3VtN21hMTBxIn0.BB9H4GaNAfxeOlzJn8FuHg',
     maxZoom: 18,
@@ -161,12 +229,12 @@ createRestaurantHTML = (restaurant) => {
   const image = document.createElement('img');
   image.className = 'restaurant-img';
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
-  const srcsetValue=DBHelper.responsiveImageForRestaurant(restaurant);
-  if(srcsetValue.length>0){
-    image.setAttribute('srcset',srcsetValue);
+  const srcsetValue = DBHelper.responsiveImageForRestaurant(restaurant);
+  if (srcsetValue.length > 0) {
+    image.setAttribute('srcset', srcsetValue);
     //image.setAttribute('sizes','350w 50vw');
   }
-  image.alt = restaurant.name+'\'s thumbnail';
+  image.alt = restaurant.name + '\'s thumbnail';
   li.append(image);
 
   const name = document.createElement('h1');
@@ -184,7 +252,7 @@ createRestaurantHTML = (restaurant) => {
   const more = document.createElement('a');
   more.innerHTML = 'View Details';
   more.href = DBHelper.urlForRestaurant(restaurant);
-  more.setAttribute('aria-label','View Details for ' + restaurant.name + 'restaurant.')
+  more.setAttribute('aria-label', 'View Details for ' + restaurant.name + 'restaurant.')
   li.append(more)
 
   return li

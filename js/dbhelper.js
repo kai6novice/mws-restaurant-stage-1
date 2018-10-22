@@ -166,7 +166,7 @@ class DBHelper {
       if(fileName && fileName.length>0 && fileExtension && fileExtension.length>0){
         returnImage = "/img/"+fileName+"-low"+fileExtension+" "+"400w"+", "+"/img/"+fileName+"-mid"+fileExtension+" "+"600w"+", "+"/img/"+fileName+fileExtension+" "+"800w";
       }
-      console.log('responsiveImageURL:'+returnImage);
+      //console.log('responsiveImageURL:'+returnImage);
     }
     return returnImage;
   }
