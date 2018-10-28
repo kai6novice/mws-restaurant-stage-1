@@ -1,59 +1,64 @@
-self.addEventListener('install', event => {
-    //cache everything you need to control
-    //call self.skipWaiting(); to take over previous service worker
-    console.log('service working installing');
-    let promiseToGetCache = caches.open('restaurant-cache-v1');
-    let promiseToCacheAllFiles = promiseToGetCache.then(cache => {
-        console.log('got cache at install');
-        let promiseToAddFilesToCache = cache.addAll([
-            '/',
-            '/img/1-low.jpg',
-            '/img/1-mid.jpg',
-            '/img/1.jpg',
-            '/img/2-low.jpg',
-            '/img/2-mid.jpg',
-            '/img/2.jpg',
-            '/img/3-low.jpg',
-            '/img/3-mid.jpg',
-            '/img/3.jpg',
-            '/img/4-low.jpg',
-            '/img/4-mid.jpg',
-            '/img/4.jpg',
-            '/img/5-low.jpg',
-            '/img/5-mid.jpg',
-            '/img/5.jpg',
-            '/img/6-low.jpg',
-            '/img/6-mid.jpg',
-            '/img/6.jpg',
-            '/img/7-low.jpg',
-            '/img/7-mid.jpg',
-            '/img/7.jpg',
-            '/img/8-low.jpg',
-            '/img/8-mid.jpg',
-            '/img/8.jpg',
-            '/img/9-low.jpg',
-            '/img/9-mid.jpg',
-            '/img/9.jpg',
-            '/img/10-low.jpg',
-            '/img/10-mid.jpg',
-            '/img/10.jpg',
-            '/index.html',
-            '/restaurant.html',
-            '/js/dbhelper.js',
-            '/js/main.js',
-            '/js/restaurant_info.js',
-            '/serviceWorker.js',
-            '/css/styles.css',
-            '/data/restaurants.json',
-            '/favicon.ico',
-            'https://unpkg.com/leaflet@1.3.1/dist/leaflet.js',
-            'https://unpkg.com/leaflet@1.3.1/dist/leaflet.css'
-        ]).then(()=>console.log('cached all successfully')).catch(err=>console.log('cache all error: '+ error));
-        //let cachePromise = cache.add(''); //add a single item to the cache
-        return promiseToAddFilesToCache.then(()=>self.skipWaiting).then(()=>console.log('successfully self skippping'));
+try{
+    self.addEventListener('install', event => {
+        //cache everything you need to control
+        //call self.skipWaiting(); to take over previous service worker
+        console.log('service working installing');
+        let promiseToGetCache = caches.open('restaurant-cache-v1');
+        let promiseToCacheAllFiles = promiseToGetCache.then(cache => {
+            console.log('got cache at install');
+            let promiseToAddFilesToCache = cache.addAll([
+                '/',
+                '/img/1-low.jpg',
+                '/img/1-mid.jpg',
+                '/img/1.jpg',
+                '/img/2-low.jpg',
+                '/img/2-mid.jpg',
+                '/img/2.jpg',
+                '/img/3-low.jpg',
+                '/img/3-mid.jpg',
+                '/img/3.jpg',
+                '/img/4-low.jpg',
+                '/img/4-mid.jpg',
+                '/img/4.jpg',
+                '/img/5-low.jpg',
+                '/img/5-mid.jpg',
+                '/img/5.jpg',
+                '/img/6-low.jpg',
+                '/img/6-mid.jpg',
+                '/img/6.jpg',
+                '/img/7-low.jpg',
+                '/img/7-mid.jpg',
+                '/img/7.jpg',
+                '/img/8-low.jpg',
+                '/img/8-mid.jpg',
+                '/img/8.jpg',
+                '/img/9-low.jpg',
+                '/img/9-mid.jpg',
+                '/img/9.jpg',
+                '/img/10-low.jpg',
+                '/img/10-mid.jpg',
+                '/img/10.jpg',
+                '/index.html',
+                '/restaurant.html',
+                '/js/dbhelper.js',
+                '/js/main.js',
+                '/js/restaurant_info.js',
+                '/serviceWorker.js',
+                '/css/styles.css',
+                '/data/restaurants.json',
+                '/favicon.ico',
+                'https://unpkg.com/leaflet@1.3.1/dist/leaflet.js',
+                'https://unpkg.com/leaflet@1.3.1/dist/leaflet.css'
+            ]).then(() => console.log('cached all successfully')).catch(err => console.log('cache all error: ' + error));
+            //let cachePromise = cache.add(''); //add a single item to the cache
+            //return promiseToAddFilesToCache.then(() => self.skipWaiting).then(() => console.log('successfully self skippping'));
+            return promiseToAddFilesToCache;
+        });
+        event.waitUntil(promiseToCacheAllFiles); //let browser know if the install is complete
     });
-    event.waitUntil(promiseToCacheAllFiles); //let browser know if the install is complete
-});
+}catch(err){
+    console.log(err);
+}
 
 self.addEventListener('activate', event => {
     //this is when service worker is ready
@@ -89,23 +94,35 @@ self.addEventListener('activate', event => {
 });
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
-    console.log('got fetch request for: '+url.href);
-    console.log('request origin is: '+url.origin);
-    console.log('location origin: '+location.origin);
-    console.log('trying fetching '+event.request.url+' from cache');
+    console.log('got fetch request for: ' + url.href);
+    console.log('request origin is: ' + url.origin);
+    console.log('location origin: ' + location.origin);
+    console.log('trying fetching ' + event.request.url + ' from cache');
     let promiseToGetCache = caches.open('restaurant-cache-v1');
-    let promiseToGetCachedResponse = promiseToGetCache.then(function(cache){
+    let promiseToGetCachedResponse = promiseToGetCache.then(cache => {
         console.log('got cache at fetch');
-        console.log('try to find '+url.pathname + 'in cache');
-        return cache.match(url.pathname);
+        console.log('try to find ' + url.pathname + ' in cache');
+        return cache.match(event.request);
     });
-    let promiseToGetResponse=promiseToGetCachedResponse.then(function(response){
-        if(!response){
-            console.log('did not find '+url.href+' in cache');
+    let promiseToGetResponse = promiseToGetCachedResponse.then(response => {
+        if (!response) {
+            console.log('did not find ' + url.href + ' in cache');
             console.log('initiate fetch');
-            return fetch(event.request);
-        }else{
-            console.log('found '+url.pathname+' in cache and return cached data');
+            let promiseToFetchRequest = fetch(event.request);
+            let promiseFetchedRequest = promiseToFetchRequest.then(fetchedResponse => {
+                console.log('fetched new copy')
+                promiseToGetCache.then(cache => {
+                    console.log('try to add new fetched file to cache')
+                    cache.put(event.request,fetchedResponse);
+                });
+                console.log('resolve the fetched response');
+                resolve(fetchedResponse);
+            }).catch(err =>{
+                return new Response('<p>Problem fetching response</p>');
+            });
+            return promiseFetchedRequest;
+        } else {
+            console.log('found ' + url.pathname + ' in cache and return cached data');
             return response;
         }
     })

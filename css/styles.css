@@ -54,7 +54,7 @@ article, aside, canvas, details, figcaption, figure, footer, header, hgroup, men
   text-transform: uppercase;
 }
 .inside{
-  width:100vw;
+  width:100%;
 }
 /* ====================== Navigation ====================== */
 nav {
@@ -237,7 +237,7 @@ nav h1 a {
   bottom: 0;
   /* position: absolute; */
   /* width: 50%; */
-  width:100%;
+  /*width:100%;*/
 }
 #restaurant-name {
   color: #f18200;
@@ -274,7 +274,7 @@ nav h1 a {
   padding: 15px;
   /* padding: 140px 40px 30px; */
   /* width: 50%; */
-  width: 100%;
+  /* width: 100%;*/
 }
 #reviews-container {
   /* padding: 30px 40px 80px; */
@@ -313,6 +313,12 @@ nav h1 a {
     grid-template-columns: 50% 50%;
     grid-template-areas: "filter-result map-container";
   }
+  .inside #maincontent{
+    grid-template-columns: 50% 50%;
+    grid-template-rows: auto auto;
+    grid-template-areas: "restaurant-container map-container"
+                         "restaurant-review map-container"
+  }
   #maincontent{
     height: calc(100vh - 125px);
   }
@@ -324,7 +330,17 @@ nav h1 a {
     height:calc(100vh - 145px);
   }
   .inside #map-container{
-    height: 550px;
+    grid-area: map-container;
+    height:calc(100% - 145px);
+  }
+  .inside #map{
+    position:fixed;
+  }
+  .inside #restaurant-container{
+    grid-area: restaurant-container;
+  }
+  .inside #reviews-container{
+    grid-area: restaurant-review;
   }
   #filter-result{
     grid-area: filter-result;
