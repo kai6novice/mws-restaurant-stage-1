@@ -28,5 +28,20 @@ This repository uses [leafletjs](https://leafletjs.com/) with [Mapbox](https://w
 
 Most of the code in this project has been written to the ES6 JavaScript specification for compatibility with modern web browsers and future proofing JavaScript code. As much as possible, try to maintain use of ES6 in any additional JavaScript you write.
 
+## Customization:
 
+### js/serviceWorkerHelp.js
+
+Added this javascript to help register service worker in main.js and restaurant_info.js
+
+### serviceWorker.js
+
+Added this javascript to handle service worker request.
+
+### img/responsive images
+
+Added a bunch of responsive images, they have the following structure
+  - fileName-low.jpg for low res image
+  - fileName-mid.jpg for mid res image
+  - fileName.jpg for high res image
 
