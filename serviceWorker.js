@@ -43,6 +43,7 @@ try{
                 '/js/dbhelper.js',
                 '/js/main.js',
                 '/js/restaurant_info.js',
+                '/js/serviceWorkerHelper.js',
                 '/serviceWorker.js',
                 '/css/styles.css',
                 '/data/restaurants.json',
@@ -114,9 +115,9 @@ self.addEventListener('fetch', event => {
                 promiseToGetCache.then(cache => {
                     console.log('try to add new fetched file to cache')
                     cache.put(event.request,fetchedResponse);
-                });
+                }).catch(err=>err);
                 console.log('resolve the fetched response');
-                resolve(fetchedResponse);
+                return fetchedResponse;
             }).catch(err =>{
                 return new Response('<p>Problem fetching response</p>');
             });

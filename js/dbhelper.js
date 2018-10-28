@@ -17,21 +17,19 @@ class DBHelper {
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    let xhr = new XMLHttpRequest();
-    xhr.open('GET', DBHelper.DATABASE_URL);
-    xhr.onload = () => {
-      if (xhr.status === 200) { // Got a success response from server!
-        const json = JSON.parse(xhr.responseText);
-        const restaurants = json.restaurants;
-        callback(null, restaurants);
-      } else { // Oops!. Got an error from server.
-        const error = (`Request failed. Returned status of ${xhr.status}`);
+    fetch(DBHelper.DATABASE_URL).then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        const error = (`Request failed. Returned status of ${response.status}`);
         callback(error, null);
       }
-    };
-    xhr.send();
+    }).then(respJson => {
+      callback(null, respJson.restaurants);
+    }).catch(err => {
+      callback(err, null);
+    })
   }
-
   /**
    * Fetch a restaurant by its ID.
    */
@@ -157,14 +155,14 @@ class DBHelper {
   /**
    * Return responsive image setting
    */
-  static responsiveImageForRestaurant(restaurant){
+  static responsiveImageForRestaurant(restaurant) {
     const restaurantPhotoURL = restaurant.photograph;
     let returnImage = '';
-    if(restaurantPhotoURL){
+    if (restaurantPhotoURL) {
       const fileName = restaurantPhotoURL.substring(0, restaurantPhotoURL.lastIndexOf('.'));
       const fileExtension = restaurantPhotoURL.substring(restaurantPhotoURL.lastIndexOf('.'));
-      if(fileName && fileName.length>0 && fileExtension && fileExtension.length>0){
-        returnImage = "/img/"+fileName+"-low"+fileExtension+" "+"400w"+", "+"/img/"+fileName+"-mid"+fileExtension+" "+"600w"+", "+"/img/"+fileName+fileExtension+" "+"800w";
+      if (fileName && fileName.length > 0 && fileExtension && fileExtension.length > 0) {
+        returnImage = "/img/" + fileName + "-low" + fileExtension + " " + "400w" + ", " + "/img/" + fileName + "-mid" + fileExtension + " " + "600w" + ", " + "/img/" + fileName + fileExtension + " " + "800w";
       }
       //console.log('responsiveImageURL:'+returnImage);
     }
@@ -177,11 +175,12 @@ class DBHelper {
   static mapMarkerForRestaurant(restaurant, map) {
     // https://leafletjs.com/reference-1.3.0.html#marker
     const marker = new L.marker([restaurant.latlng.lat, restaurant.latlng.lng],
-      {title: restaurant.name,
-      alt: restaurant.name,
-      url: DBHelper.urlForRestaurant(restaurant)
+      {
+        title: restaurant.name,
+        alt: restaurant.name,
+        url: DBHelper.urlForRestaurant(restaurant)
       })
-      marker.addTo(map);
+    marker.addTo(map);
     return marker;
   }
   /* static mapMarkerForRestaurant(restaurant, map) {
@@ -195,5 +194,5 @@ class DBHelper {
     return marker;
   } */
 
-  }
+}
 

@@ -1,11 +1,12 @@
 let restaurant;
-var newMap;
+let newMap;
 
 /**
  * Initialize map as soon as the page is loaded.
  */
 document.addEventListener('DOMContentLoaded', (event) => {
   initMap();
+  ServiceWorkerHelper.registerServiceWorker();
 });
 
 /**
