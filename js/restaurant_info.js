@@ -29,7 +29,7 @@ initMap = () => {
           '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
           'Imagery � <a href="https://www.mapbox.com/">Mapbox</a>',
         id: 'mapbox.streets'
-      }).addTo(newMap);
+      }).addTo(self.newMap);
       fillBreadcrumb();
       DBHelper.mapMarkerForRestaurant(self.restaurant, self.newMap);
     }
@@ -68,6 +68,7 @@ fetchRestaurantFromURL = (callback) => {
     DBHelper.fetchRestaurantById(id, (error, restaurant) => {
       self.restaurant = restaurant;
       if (!restaurant) {
+        console.log('failed to fetch restaurant by id: ' + id);
         console.error(error);
         return;
       }
@@ -90,20 +91,24 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   const image = document.getElementById('restaurant-img');
   image.className = 'restaurant-img'
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
-  const srcsetValue=DBHelper.responsiveImageForRestaurant(restaurant);
-  if(srcsetValue.length>0){
-    image.setAttribute('srcset',srcsetValue);
+  const srcsetValue = DBHelper.responsiveImageForRestaurant(restaurant);
+  if (srcsetValue.length > 0) {
+    console.log('set responsive image into srcset');
+    image.setAttribute('srcset', srcsetValue);
     //image.setAttribute('sizes','350w 50vw');
   }
-  image.setAttribute('alt',restaurant.name+'\'s image');
+  image.setAttribute('alt', restaurant.name + '\'s image');
   const cuisine = document.getElementById('restaurant-cuisine');
+  console.log('set cuisine into innerHTML');
   cuisine.innerHTML = restaurant.cuisine_type;
 
   // fill operating hours
   if (restaurant.operating_hours) {
+    console.log('set operating_hours');
     fillRestaurantHoursHTML();
   }
   // fill reviews
+  console.log('set review');
   fillReviewsHTML();
 }
 
@@ -161,7 +166,7 @@ createReviewHTML = (review) => {
 
   const date = document.createElement('p');
   date.innerHTML = review.date;
-  date.className='review-date';
+  date.className = 'review-date';
   li.appendChild(date);
 
   const rating = document.createElement('p');
@@ -180,7 +185,7 @@ createReviewHTML = (review) => {
 /**
  * Add restaurant name to the breadcrumb navigation menu
  */
-fillBreadcrumb = (restaurant=self.restaurant) => {
+fillBreadcrumb = (restaurant = self.restaurant) => {
   const breadcrumb = document.getElementById('breadcrumb');
   const li = document.createElement('li');
   li.innerHTML = restaurant.name;

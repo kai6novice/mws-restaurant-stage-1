@@ -1,16 +1,30 @@
 /**
  * Common database helper functions.
- */
-class DBHelper {
+ **/
 
+class DBHelper {
+  static get dbName() {
+    return 'restaurant-db';
+  }
   /**
    * Database URL.
    * Change this to restaurants.json file location on your server.
    */
   static get DATABASE_URL() {
     //const port = 8000 // Change this to your server port
-    const port = location.port; //fix: now the port is dynamic
-    return `http://localhost:${port}/data/restaurants.json`;
+    //const port = location.port; //fix: now the port is dynamic
+    const port = 1337; //update to use local data server
+    const path = '/restaurants';
+    //return `http://localhost:${port}/data/restaurants.json`;
+    return `http://localhost:${port}${path}`;
+  }
+  static INDIVIDUAL_RESTAURANT_DATABASE_URL(id) {
+    //const port = 8000 // Change this to your server port
+    //const port = location.port; //fix: now the port is dynamic
+    const port = 1337; //update to use local data server
+    const path = '/restaurants';
+    //return `http://localhost:${port}/data/restaurants.json`;
+    return `http://localhost:${port}${path}/${id}`;
   }
 
   /**
@@ -19,33 +33,207 @@ class DBHelper {
   static fetchRestaurants(callback) {
     fetch(DBHelper.DATABASE_URL).then(response => {
       if (response.ok) {
+        console.log('got restaurant response using URL: ' + DBHelper.DATABASE_URL);
+        //console.log(response);
         return response.json();
       } else {
         const error = (`Request failed. Returned status of ${response.status}`);
-        callback(error, null);
+        console.log('trying to fetch restaurant from indexed DB because response is NOT ok.');
+        return DBHelper.promiseToFetchRestaurantsFromIndexedDB();
+        //callback(error, null);
       }
     }).then(respJson => {
-      callback(null, respJson.restaurants);
+      if (respJson) {
+        DBHelper.fileRestaurantIntoIndexedDB(respJson);
+        console.log('got response json');
+        console.log(respJson);
+        callback(null, respJson);
+      } else {
+        callback('respJson is null', null);
+      }
     }).catch(err => {
-      callback(err, null);
-    })
+      //this is when we can't fetch the data from the backend server
+      //try to find restaurants in indexedDB
+      console.log('trying to fetch restaurant from indexedDB because response json failed??');
+      callback('Failed to fetch restaurants from anywhere.', null);
+      //callback(err, null);
+    });
+  }
+  static promiseToFetchARestaurantFromIndexedDB(id) {
+    console.log('in promiseToFetchARestaurantFromIndexedDB, trying to get restaurant with id: ' + id);
+    if (!('indexedDB' in window)) {
+      callback('This browser does\'t support IndexedDB', null);
+    } else {
+      if (idb) {
+        console.log('idb is defined');
+      } else {
+        console.log('idb is undefined');
+      }
+      let promiseToOpenIDB = idb.open(DBHelper.dbName, 1, restaurantDB => {
+        //restaurantDB.oldVersion
+        console.log('try to open idb');
+        if (!restaurantDB.objectStoreNames.contains('restaurant')) {
+          console.log('restaurant object store is not found in opened idb');
+          //callback('The restaurant object store is not found in indexedDB.', null);
+        }
+      });
+      let promiseToGetARestaurant = promiseToOpenIDB.then(restaurantDB => {
+        //got IDB
+        console.log('got idb, and proceed to get restaurant object store...');
+        if (!restaurantDB.objectStoreNames.console('restaurant')) {
+          callback('The restaurant object store is not found in indexedDB.', null);
+        } else {
+          let tx = restaurantDB.transaction('restaurant', 'readonly');
+          let restaurantObjStore = tx.objectStore('restaurant');
+          return restaurantObjStore.get(id);
+        }
+      }).catch(err => {
+        //fail to get IDB
+        console.log('Failed to open IDB in promiseToFetchARestaurantFromIndexedDB');
+        return null;
+      });
+      promiseToGetARestaurant.then(restaurant => {
+        //successfully retrieve all restaurants
+        return restaurant;
+      }).catch(err => {
+        //failed to retrieve all restaurants
+        console.log('Failed to get a restaurant from IDB in promiseToFetchARestaurantFromIndexedDB');
+        return null;
+      });
+    }
+  }
+  /**
+   * Try to fetch restaurants from indexedDB
+   * @param {*} callback
+   */
+  static promiseToFetchRestaurantsFromIndexedDB() {
+    if (!('indexedDB' in window)) {
+      callback('This browser does\'t support IndexedDB', null);
+    } else {
+      if (idb) {
+        console.log('idb is defined');
+      } else {
+        console.log('idb is undefined');
+      }
+      let promiseToOpenIDB = idb.open(DBHelper.dbName, 1, restaurantDB => {
+        //restaurantDB.oldVersion
+        console.log('try to open idb');
+        if (!restaurantDB.objectStoreNames.contains('restaurant')) {
+          console.log('restaurant object store is not found in opened idb');
+          //callback('The restaurant object store is not found in indexedDB.', null);
+        }
+      });
+      let promiseToGetAllRestaurants = promiseToOpenIDB.then(restaurantDB => {
+        //got IDB
+        console.log('got idb, and proceed to get restaurant object store...');
+        if (!restaurantDB.objectStoreNames.console('restaurant')) {
+          callback('The restaurant object store is not found in indexedDB.', null);
+        } else {
+          let tx = restaurantDB.transaction('restaurant', 'readonly');
+          let restaurantObjStore = tx.objectStore('restaurant');
+          return restaurantObjStore.getAll();
+        }
+      }).catch(err => {
+        //fail to get IDB
+        console.log('Failed to open IDB in promiseToFetchRestaurantsFromIndexedDB');
+        return null;
+      });
+      promiseToGetAllRestaurants.then(restaurants => {
+        //successfully retrieve all restaurants
+        return restaurants;
+      }).catch(err => {
+        //failed to retrieve all restaurants
+        console.log('Failed to get all restaurants from IDB in promiseToFetchRestaurantsFromIndexedDB');
+        return null;
+      });
+    }
+  }
+  /**
+   * File restaurant json data into indexedDB
+   * @param {*} restaurantsJSON
+   */
+  static fileRestaurantIntoIndexedDB(restaurantsJSON) {
+    console.log('restaurantsJSON received in fileRestaurantIntoIndexedDB');
+    console.log(restaurantsJSON);
+    if (!('indexedDB' in window)) {
+      console.error('This browser does\'t support IndexedDB, abort filing restaurant into indexedDB.');
+    } else {
+      if (idb) {
+        console.log('idb is defined');
+      } else {
+        console.log('idb is undefined');
+      }
+      let promiseToOpenIDB = idb.open(DBHelper.dbName, 1, restaurantDB => {
+        //restaurantDB.oldVersion
+        if (!restaurantDB.objectStoreNames.contains('restaurant')) {
+          let restaurantObjStore = restaurantDB.createObjectStore('restaurant', { keyPath: 'id' });
+          restaurantObjStore.createIndex('cuisineIndex', 'cuisine_type');
+          restaurantObjStore.createIndex('neighborhoodIndex', 'neighborhood');
+        }
+      });
+      let promiseToFileRestaurantToIDB = promiseToOpenIDB.then(restaurantDB => {
+        console.log('in promiseToFileRestaurantToIDB');
+        let tx = restaurantDB.transaction('restaurant', 'readwrite');
+        let restaurantObjStore = tx.objectStore('restaurant');
+        console.log('got object store');
+        restaurantObjStore.clear();
+        console.log('object store cleared');
+        restaurantsJSON.forEach(restaurant => {
+          console.log('try to file this restaurant');
+          console.log(restaurant);
+          restaurantObjStore.put(restaurant);
+        });
+        return tx.complete;
+      }).catch(err => {
+        //fail to get IDB
+        console.error('There is a problem to retrieve indexedDB.');
+      });
+      promiseToFileRestaurantToIDB.then(() => {
+        console.log('Successfully added all restaurants into indexedDB.');
+      }).catch(err => {
+        console.error('Failed to add all restaurants into indexedDB.');
+      });
+    }
   }
   /**
    * Fetch a restaurant by its ID.
    */
   static fetchRestaurantById(id, callback) {
     // fetch all restaurants with proper error handling.
-    DBHelper.fetchRestaurants((error, restaurants) => {
-      if (error) {
-        callback(error, null);
+    /*     DBHelper.fetchRestaurants((error, restaurants) => {
+          if (error) {
+            callback(error, null);
+          } else {
+            const restaurant = restaurants.find(r => r.id == id);
+            if (restaurant) { // Got the restaurant
+              callback(null, restaurant);
+            } else { // Restaurant does not exist in the database
+              callback('Restaurant does not exist', null);
+            }
+          }
+        }); */
+    console.log('try to fetch restaurant by id: ' + id);
+    console.log('URL: ' + DBHelper.INDIVIDUAL_RESTAURANT_DATABASE_URL(id));
+    fetch(DBHelper.INDIVIDUAL_RESTAURANT_DATABASE_URL(id)).then(response => {
+      if (response.ok) {
+        console.log('got restaurant response using URL: ' + DBHelper.INDIVIDUAL_RESTAURANT_DATABASE_URL(id));
+        return response.json();
       } else {
-        const restaurant = restaurants.find(r => r.id == id);
-        if (restaurant) { // Got the restaurant
-          callback(null, restaurant);
-        } else { // Restaurant does not exist in the database
-          callback('Restaurant does not exist', null);
-        }
+        return DBHelper.promiseToFetchARestaurantFromIndexedDB(id);
       }
+    }).then(respJson => {
+      if (respJson) {
+        //DBHelper.fileRestaurantIntoIndexedDB(respJson);
+        console.log('got response json');
+        console.log(respJson);
+        callback(null, respJson);
+      } else {
+        callback('respJson is null', null);
+      }
+    }).catch(err => {
+      console.log('trying to fetch a restaurant from indexedDB because response json failed??');
+      callback('Failed to fetch a restaurant from anywhere.', null);
+      //callback(err, null);
     });
   }
 
@@ -149,18 +337,27 @@ class DBHelper {
    * Restaurant image URL.
    */
   static imageUrlForRestaurant(restaurant) {
-    return (`/img/${restaurant.photograph}`);
+    if (restaurant) {
+      console.log('getting image url for restuarant: ' + restaurant.id);
+      console.log('the restaurant\'s image file name is: ' + restaurant.photograph + '.jpg');
+      return (`/img/${restaurant.photograph}.jpg`);
+    } else {
+      console.log('someone request image url from undefined restaurant');
+      return '';
+    }
   }
 
   /**
    * Return responsive image setting
    */
   static responsiveImageForRestaurant(restaurant) {
+    console.log('trying to get responsive image for restaurant: ' + restaurant.id);
     const restaurantPhotoURL = restaurant.photograph;
     let returnImage = '';
     if (restaurantPhotoURL) {
       const fileName = restaurantPhotoURL.substring(0, restaurantPhotoURL.lastIndexOf('.'));
-      const fileExtension = restaurantPhotoURL.substring(restaurantPhotoURL.lastIndexOf('.'));
+      //const fileExtension = restaurantPhotoURL.substring(restaurantPhotoURL.lastIndexOf('.'));
+      const fileExtension = ".jpg";
       if (fileName && fileName.length > 0 && fileExtension && fileExtension.length > 0) {
         returnImage = "/img/" + fileName + "-low" + fileExtension + " " + "400w" + ", " + "/img/" + fileName + "-mid" + fileExtension + " " + "600w" + ", " + "/img/" + fileName + fileExtension + " " + "800w";
       }

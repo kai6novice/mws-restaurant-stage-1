@@ -38,12 +38,14 @@ try{
                 '/img/10-low.jpg',
                 '/img/10-mid.jpg',
                 '/img/10.jpg',
+                '/img/undefined.jpg',
                 '/index.html',
                 '/restaurant.html',
                 '/js/dbhelper.js',
                 '/js/main.js',
                 '/js/restaurant_info.js',
                 '/js/serviceWorkerHelper.js',
+                '/js/idb.js',
                 '/serviceWorker.js',
                 '/css/styles.css',
                 '/data/restaurants.json',
@@ -114,7 +116,7 @@ self.addEventListener('fetch', event => {
                 console.log('fetched new copy')
                 promiseToGetCache.then(cache => {
                     console.log('try to add new fetched file to cache')
-                    cache.put(event.request,fetchedResponse);
+                    cache.put(event.request,fetchedResponse.clone());
                 }).catch(err=>err);
                 console.log('resolve the fetched response');
                 return fetchedResponse;
