@@ -156,13 +156,11 @@ fillRestaurantsHTML = (restaurants = self.restaurants) => {
   });
   addMarkersToMap();
 }
-
 /**
  * Create restaurant HTML.
  */
 createRestaurantHTML = (restaurant) => {
   const li = document.createElement('li');
-
   const image = document.createElement('img');
   image.className = 'restaurant-img';
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
@@ -173,7 +171,16 @@ createRestaurantHTML = (restaurant) => {
   }
   image.alt = restaurant.name + '\'s thumbnail';
   li.append(image);
-
+  const favImage = document.createElement('img');
+  favImage.className = 'notFavorite';
+  let restaurantID = restaurant.id;
+  favImage.onclick = (function(){
+    let markRestaurantAsFavoriteFunc = function(){
+        alert('registering restaurant: '+restaurantID+' as favorite');
+    };
+    return markRestaurantAsFavoriteFunc;
+  })();
+  li.append(favImage);
   const name = document.createElement('h2');
   name.innerHTML = restaurant.name;
   li.append(name);

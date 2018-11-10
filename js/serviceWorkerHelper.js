@@ -60,6 +60,9 @@ class ServiceWorkerHelper {
                 // changes, eg a new worker has skipped waiting and become
                 // the new active worker.
             });
+            /* navigator.serviceWorker.ready.then(swReg=>{
+                return swReg.sync.register('restaurantSync');
+            }); */
         }
     }
 }

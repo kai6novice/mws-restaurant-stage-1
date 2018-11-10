@@ -39,6 +39,8 @@ try{
                 '/img/10-mid.jpg',
                 '/img/10.jpg',
                 '/img/undefined.jpg',
+                '/img/Empty_Star.svg',
+                '/img/Gold_Star.svg',
                 '/index.html',
                 '/restaurant.html',
                 '/js/dbhelper.js',
@@ -163,3 +165,8 @@ self.addEventListener('message', event => {
     console.log('in message event');
     //take a message to trigger self.skipWaiting(); so user have control over the new version of service worker
 });
+/* self.addEventListener('sync', event=>{
+    if(event.tag == 'restaurantSync'){
+        event.waitUntil(doSomeStuff());
+    }
+}); */
