@@ -172,7 +172,12 @@ createRestaurantHTML = (restaurant) => {
   image.alt = restaurant.name + '\'s thumbnail';
   li.append(image);
   const favImage = document.createElement('img');
-  favImage.className = 'notFavorite';
+  favImage.id= 'favImage';
+  if(restaurant.is_favorite){
+    favImage.className = 'isFavorite';
+  }else{
+    favImage.className = 'notFavorite';
+  }
   let restaurantID = restaurant.id;
   favImage.onclick = (function(){
     let markRestaurantAsFavoriteFunc = function(){

@@ -187,13 +187,25 @@ nav h1 a {
   margin: 20px 0 10px;
   text-transform: uppercase;
 }
-#restaurants-list li img.notFavorite{
-  content: url("/img/Empty_Star.svg");
+#restaurants-list li img#favImage {
   position: absolute;
   width: 50px;
   height: 50px;
   top: 20px;
   left: 20px;
+}
+.inside #restaurant-container img#favImage{
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  top: 100px;
+  left: 30px;
+}
+#restaurants-list li img#favImage.notFavorite, .inside #restaurant-container img#favImage.notFavorite{
+  content: url("/img/Empty_Star.svg");
+}
+#restaurants-list li img#favImage.isFavorite, .inside #restaurant-container img#favImage.isFavorite{
+  content: url("/img/Gold_Star.svg");
 }
 #restaurants-list p {
   margin: 0;

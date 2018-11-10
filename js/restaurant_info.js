@@ -98,6 +98,12 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
     //image.setAttribute('sizes','350w 50vw');
   }
   image.setAttribute('alt', restaurant.name + '\'s image');
+  const favImage = document.getElementById('favImage');
+  if(restaurant.is_favorite){
+    favImage.className='isFavorite';
+  }else{
+    favImage.className='notFavorite';
+  }
   const cuisine = document.getElementById('restaurant-cuisine');
   console.log('set cuisine into innerHTML');
   cuisine.innerHTML = restaurant.cuisine_type;
