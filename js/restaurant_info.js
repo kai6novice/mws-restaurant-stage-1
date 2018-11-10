@@ -104,6 +104,13 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   }else{
     favImage.className='notFavorite';
   }
+  let restaurantID = restaurant.id;
+  favImage.onclick = (function(){
+    let markRestaurantAsFavoriteFunc = function(){
+        alert('registering restaurant: '+restaurantID+' as favorite');
+    };
+    return markRestaurantAsFavoriteFunc;
+  })();
   const cuisine = document.getElementById('restaurant-cuisine');
   console.log('set cuisine into innerHTML');
   cuisine.innerHTML = restaurant.cuisine_type;
