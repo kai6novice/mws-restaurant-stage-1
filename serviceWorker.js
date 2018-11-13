@@ -41,6 +41,8 @@ try{
                 '/img/undefined.jpg',
                 '/img/Empty_Star.svg',
                 '/img/Gold_Star.svg',
+                '/img/icons-192.png',
+                '/img/icons-512.png',
                 '/index.html',
                 '/restaurant.html',
                 '/js/dbhelper.js',

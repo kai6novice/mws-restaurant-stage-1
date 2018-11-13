@@ -194,6 +194,9 @@ nav h1 a {
   top: 20px;
   left: 20px;
 }
+.inside #restaurant-container {
+  position: relative;
+}
 .inside #restaurant-container img#favImage{
   position: absolute;
   width: 50px;

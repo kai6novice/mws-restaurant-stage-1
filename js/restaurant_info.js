@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
  */
 initMap = () => {
   fetchRestaurantFromURL((error, restaurant) => {
+    self.restaurant = restaurant;
     if (error) { // Got an error!
       console.error(error);
     } else {
@@ -104,9 +105,9 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   }else{
     favImage.className='notFavorite';
   }
-  let restaurantID = restaurant.id;
+  const restaurantID = restaurant.id;
   favImage.onclick = (function(){
-    let markRestaurantAsFavoriteFunc = function(){
+    const markRestaurantAsFavoriteFunc = function(){
         alert('registering restaurant: '+restaurantID+' as favorite');
     };
     return markRestaurantAsFavoriteFunc;
@@ -122,7 +123,14 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   }
   // fill reviews
   console.log('set review');
-  fillReviewsHTML();
+  const promiseToFetchRestaurantReviews = DBHelper.promiseToFetchRestaurantReviews(restaurantID);
+  promiseToFetchRestaurantReviews.then(restaurantReviews=>{
+    fillReviewsHTML(restaurantReviews);
+  }).catch(err=>{
+    console.log('problem trying to fetch restaurant reviews');
+    console.log(err);
+    fillReviewsHTML();
+  });
 }
 
 /**
@@ -178,7 +186,8 @@ createReviewHTML = (review) => {
   li.appendChild(name);
 
   const date = document.createElement('p');
-  date.innerHTML = review.date;
+  //date.innerHTML = review.date;
+  date.innerHTML = new Date(review.createdAt).toLocaleDateString()|| '';
   date.className = 'review-date';
   li.appendChild(date);
 

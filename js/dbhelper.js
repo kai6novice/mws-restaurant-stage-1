@@ -26,6 +26,11 @@ class DBHelper {
     //return `http://localhost:${port}/data/restaurants.json`;
     return `http://localhost:${port}${path}/${id}`;
   }
+  static RESTAURANT_REVIEW_URL(id) {
+    const port = 1337;
+    const path = '/reviews';
+    return `http://localhost:${port}${path}/?restaurant_id=${id}`;
+  }
 
   /**
    * Fetch all restaurants.
@@ -69,14 +74,7 @@ class DBHelper {
       } else {
         console.log('idb is undefined');
       }
-      let promiseToOpenIDB = idb.open(DBHelper.dbName, 1, restaurantDB => {
-        //restaurantDB.oldVersion
-        console.log('try to open idb');
-        if (!restaurantDB.objectStoreNames.contains('restaurant')) {
-          console.log('restaurant object store is not found in opened idb');
-          //callback('The restaurant object store is not found in indexedDB.', null);
-        }
-      });
+      let promiseToOpenIDB = DBHelper.promiseToOpenRestaurantIDB(idb);
       let promiseToGetARestaurant = promiseToOpenIDB.then(restaurantDB => {
         //got IDB
         console.log('got idb, and proceed to get restaurant object store...');
@@ -92,14 +90,7 @@ class DBHelper {
         console.log('Failed to open IDB in promiseToFetchARestaurantFromIndexedDB');
         return null;
       });
-      promiseToGetARestaurant.then(restaurant => {
-        //successfully retrieve all restaurants
-        return restaurant;
-      }).catch(err => {
-        //failed to retrieve all restaurants
-        console.log('Failed to get a restaurant from IDB in promiseToFetchARestaurantFromIndexedDB');
-        return null;
-      });
+      return promiseToGetARestaurant;
     }
   }
   /**
@@ -115,14 +106,7 @@ class DBHelper {
       } else {
         console.log('idb is undefined');
       }
-      let promiseToOpenIDB = idb.open(DBHelper.dbName, 1, restaurantDB => {
-        //restaurantDB.oldVersion
-        console.log('try to open idb');
-        if (!restaurantDB.objectStoreNames.contains('restaurant')) {
-          console.log('restaurant object store is not found in opened idb');
-          //callback('The restaurant object store is not found in indexedDB.', null);
-        }
-      });
+      let promiseToOpenIDB = DBHelper.promiseToOpenRestaurantIDB(idb);
       let promiseToGetAllRestaurants = promiseToOpenIDB.then(restaurantDB => {
         //got IDB
         console.log('got idb, and proceed to get restaurant object store...');
@@ -163,14 +147,7 @@ class DBHelper {
       } else {
         console.log('idb is undefined');
       }
-      let promiseToOpenIDB = idb.open(DBHelper.dbName, 1, restaurantDB => {
-        //restaurantDB.oldVersion
-        if (!restaurantDB.objectStoreNames.contains('restaurant')) {
-          let restaurantObjStore = restaurantDB.createObjectStore('restaurant', { keyPath: 'id' });
-          restaurantObjStore.createIndex('cuisineIndex', 'cuisine_type');
-          restaurantObjStore.createIndex('neighborhoodIndex', 'neighborhood');
-        }
-      });
+      let promiseToOpenIDB = DBHelper.promiseToOpenRestaurantIDB(idb);
       let promiseToFileRestaurantToIDB = promiseToOpenIDB.then(restaurantDB => {
         console.log('in promiseToFileRestaurantToIDB');
         let tx = restaurantDB.transaction('restaurant', 'readwrite');
@@ -214,14 +191,18 @@ class DBHelper {
         }); */
     console.log('try to fetch restaurant by id: ' + id);
     console.log('URL: ' + DBHelper.INDIVIDUAL_RESTAURANT_DATABASE_URL(id));
-    fetch(DBHelper.INDIVIDUAL_RESTAURANT_DATABASE_URL(id)).then(response => {
+    let promiseToFetchRestaurant = fetch(DBHelper.INDIVIDUAL_RESTAURANT_DATABASE_URL(id)).then(response => {
       if (response.ok) {
         console.log('got restaurant response using URL: ' + DBHelper.INDIVIDUAL_RESTAURANT_DATABASE_URL(id));
         return response.json();
       } else {
         return DBHelper.promiseToFetchARestaurantFromIndexedDB(id);
       }
-    }).then(respJson => {
+    }).catch(err => {
+      console.log('problem fetching restaurant from backend or indexedeb.');
+      return null;
+    });
+    promiseToFetchRestaurant.then(respJson => {
       if (respJson) {
         //DBHelper.fileRestaurantIntoIndexedDB(respJson);
         console.log('got response json');
@@ -232,6 +213,7 @@ class DBHelper {
       }
     }).catch(err => {
       console.log('trying to fetch a restaurant from indexedDB because response json failed??');
+      console.log(err);
       callback('Failed to fetch a restaurant from anywhere.', null);
       //callback(err, null);
     });
@@ -338,7 +320,7 @@ class DBHelper {
    */
   static imageUrlForRestaurant(restaurant) {
     if (restaurant) {
-      console.log('getting image url for restuarant: ' + restaurant.id);
+      console.log('getting image url for restaurant: ' + restaurant.id);
       console.log('the restaurant\'s image file name is: ' + restaurant.photograph + '.jpg');
       return (`/img/${restaurant.photograph}.jpg`);
     } else {
@@ -390,6 +372,184 @@ class DBHelper {
     );
     return marker;
   } */
+  static promiseToFetchRestaurantReviews(restaurantID) {
+    const restaurantReviewURL = DBHelper.RESTAURANT_REVIEW_URL(restaurantID);
+    let promiseToFetchRestaurantReviewsFromURL = fetch(restaurantReviewURL).then(response => {
+      if (response.ok) {
+        console.log('got restaurant reviews response using URL: ' + restaurantReviewURL);
+        return response.json();
+      } else {
+        const error = (`Request failed. Returned status of ${response.status}`);
+        console.log('trying to fetch restaurant reviews from indexed DB because response is NOT ok.');
+        reject(new Error('response is not ok'));
+      }
+    }).catch(err => {
+      console.log(err);
+      return null;
+    });
+    let promiseToFileRestaurantReviewsIntoIndexedDBForRestaurant = promiseToFetchRestaurantReviewsFromURL.then(respJson => {
+      if (respJson) {
+        DBHelper.promiseToFileRestaurantReviewsIntoIndexedDBForRestaurant(respJson, restaurantID);
+        return respJson;
+      } else {
+        return null;
+      }
+    }).catch(err => {
+      console.log('Fail to fetch restaurant reviews from URL');
+      console.log(err);
+      DBHelper.promiseToFetchRestaurantReviewsFromIndexedDB(restaurantID);
+      return null;
+    });
+    return promiseToFileRestaurantReviewsIntoIndexedDBForRestaurant;
+  }
+  static promiseToFetchRestaurantReviewsFromIndexedDB(restaurantID) {
+    console.log('running promiseToFetchRestaurantReviewsFromIndexedDB');
+    console.log('restaurantID: ' + restaurantID);
+    if (!('indexedDB' in window)) {
+      callback('This browser does\'t support IndexedDB', null);
+    } else {
+      if (idb) {
+        console.log('idb is defined');
+      } else {
+        console.log('idb is undefined');
+      }
+      let promiseToOpenIDB = DBHelper.promiseToOpenRestaurantIDB(idb);
+      let promiseToGetAllRestaurantReviews = promiseToOpenIDB.then(restaurantDB => {
+        //got IDB
+        console.log('got idb, and proceed to get restaurant object store...');
+        if (!restaurantDB.objectStoreNames.console('restaurantReview')) {
+          return null;
+        } else {
+          let tx = restaurantDB.transaction('restaurantReview', 'readonly');
+          let restaurantReviewObjStore = tx.objectStore('restaurantReview');
+          let restaurantReviewRestaurantIDIndex = restaurantReviewObjStore.index('restaurantIDIndex');
 
+          return restaurantReviewRestaurantIDIndex.getAll(IDBKeyRange.only(restaurantID));
+        }
+      }).catch(err => {
+        //fail to get IDB
+        console.log('Failed to open IDB in promiseToFetchRestaurantReviewsFromIndexedDB');
+        return null;
+      });
+      promiseToGetAllRestaurantReviews.then(restaurantReviews => {
+        //successfully retrieve all restaurants
+        return restaurantReviews;
+      }).catch(err => {
+        //failed to retrieve all restaurants
+        console.log('Failed to get all restaurant reviews from IDB in promiseToFetchRestaurantReviewsFromIndexedDB');
+        return null;
+      });
+    }
+  }
+  static promiseToFileRestaurantReviewsIntoIndexedDBForRestaurant(restaurantReviewsJSON, restaurantID) {
+    console.log('restaurantReviewsJSON in fileRestaurantReviewsIntoIndexedDBForRestaurant');
+    console.log(restaurantReviewsJSON);
+    console.log(restaurantID);
+    if (!('indexedDB' in window)) {
+      console.error('This browser does\'t support IndexedDB, abort filing restaurant reviews into indexedDB.');
+      return new Promise.reject('browser does not support indexeddb');
+    }
+    if (!idb) {
+      console.log('idb is undefined');
+      return new Promise.reject('idb is undefined for some reason?');
+    }
+    console.log('idb is defined');
+    let promiseToOpenIDB = DBHelper.promiseToOpenRestaurantIDB(idb);
+    let promiseToFileRestaurantReviewsToIDB = promiseToOpenIDB.then(restaurantDB => {
+      console.log('in promiseToFileRestaurantReviewsToIDB');
+      let tx = restaurantDB.transaction('restaurantReview', 'readwrite');
+      let restaurantReviewObjStore = tx.objectStore('restaurantReview');
+      console.log('got restaurant review object store');
+      //remove all reviews belong to this restaurant
+      //TO-DO: fix this!!!
+      /* let promiseToDeleteAllReviewForRestaurant = DBHelper.promiseToDeleteAllReviewForRestaurant(restaurantReviewObjStore, restaurantID);
+      promiseToDeleteAllReviewForRestaurant.then(() => {
+        restaurantReviewsJSON.forEach(restaurantReview => {
+          console.log('try to file this restaurant');
+          console.log(restaurantReview);
+          restaurantReviewObjStore.put(restaurantReview);
+        });
+        return tx.complete;
+      }).catch(err => {
+        console.log('failed to delete all exisiting reviews for restaurant');
+        console.log(err);
+        console.log('continue to file to the indexeddb anyway');
+        restaurantReviewsJSON.forEach(restaurantReview => {
+          console.log('try to file this restaurant');
+          console.log(restaurantReview);
+          restaurantReviewObjStore.put(restaurantReview);
+        });
+        return tx.complete;
+      }); */
+      restaurantReviewsJSON.forEach(restaurantReview => {
+        console.log('try to file this restaurant');
+        console.log(restaurantReview);
+        restaurantReviewObjStore.put(restaurantReview);
+      });
+      return tx.complete;
+    }).catch(err => {
+      //fail to get IDB
+      console.log(err);
+      console.error('There is a problem to retrieve indexedDB.');
+      reject('');
+    });
+    return promiseToFileRestaurantReviewsToIDB;
+  }
+  static promiseToDeleteAllReviewForRestaurant(restaurantReviewObjStore, restaurantID) {
+    console.log('in deleteAllReviewForRestaurant');
+    console.log(restaurantID);
+    //let tx = restaurantDB.transaction('restaurantReview', 'readwrite');
+    //let restaurantReviewObjStore = tx.objectStore('restaurantReview');
+    console.log('got restaurant review object store');
+    let restaurantIDIndex = restaurantReviewObjStore.index('restaurantIDIndex');
+    let promiseToGetAllReviewForRestaurantCount = restaurantIDIndex.count(IDBKeyRange.only(restaurantID));
+    let promiseToDeleteAllReviewForRestaurant = promiseToGetAllReviewForRestaurantCount.then(totalReviewForRestaurant => {
+      if (totalReviewForRestaurant > 0) {
+        let promiseToGetAllReviewForRestaurant = restaurantIDIndex.openCursor(IDBKeyRange.only(restaurantID));
+        let promiseToDeleteEachReviewForRestaurant = promiseToGetAllReviewForRestaurant.then(function deleteRestaurantReviewAt(cursor) {
+          if(!cursor){
+            return;
+          }
+          if (cursor) {
+            console.log('trying to delete cursor');
+            console.log(cursor);
+            //console.log('delete cursor id:'+cursor.key);
+            cursor.delete();
+            cursor.continue().then(deleteRestaurantReviewAt);
+          }
+        }).catch(err => {
+          console.log('problem getting all reviews for restaurant.');
+          console.log(err);
+          reject('');
+        });
+        return promiseToDeleteEachReviewForRestaurant;
+      } else {
+        console.log('there is no review for the restaurant.');
+        return new Promise.resolve('');
+      }
+    }).catch(err => {
+      console.log('problem getting total count of review for the restaurant.');
+      console.log(err);
+      return new Promise.reject('');
+    });
+    return promiseToDeleteAllReviewForRestaurant;
+  }
+  static promiseToOpenRestaurantIDB(idb) {
+    return idb.open(DBHelper.dbName, 1, restaurantDB => {
+      //restaurantDB.oldVersion
+      console.log('try to open idb');
+      if (!restaurantDB.objectStoreNames.contains('restaurant')) {
+        console.log('restaurant object store is not found in opened idb');
+        let restaurantObjStore = restaurantDB.createObjectStore('restaurant', { keyPath: 'id' });
+        restaurantObjStore.createIndex('cuisineIndex', 'cuisine_type');
+        restaurantObjStore.createIndex('neighborhoodIndex', 'neighborhood');
+      }
+      if (!restaurantDB.objectStoreNames.contains('restaurantReview')) {
+        let restaurantReviewObjStore = restaurantDB.createObjectStore('restaurantReview', { keyPath: 'id' });
+        restaurantReviewObjStore.createIndex('restaurantIDIndex', 'restaurant_id');
+        restaurantReviewObjStore.createIndex('restaurantSyncIndex', 'sync');
+      }
+    });
+  }
 }
 
