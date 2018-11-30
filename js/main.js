@@ -173,17 +173,25 @@ createRestaurantHTML = (restaurant) => {
   li.append(image);
   const favImage = document.createElement('img');
   favImage.id= 'favImage';
-  if(restaurant.is_favorite){
+  if(restaurant.is_favorite=="true"){
     favImage.className = 'isFavorite';
   }else{
     favImage.className = 'notFavorite';
   }
   let restaurantID = restaurant.id;
   favImage.onclick = (function(){
-    let markRestaurantAsFavoriteFunc = function(){
-        alert('registering restaurant: '+restaurantID+' as favorite');
+    let toggleRestaurantAsFavoriteFunc = function(){
+      if (this.className=="isFavorite"){
+        //alert('registering restaurant: '+restaurantID+' as not favorite');
+        this.className = "notFavorite";
+        DBHelper.markRestaurantAsFavorite(restaurantID, false);
+      }else{
+        //alert('registering restaurant: '+restaurantID+' as favorite');
+        this.className = "isFavorite";
+        DBHelper.markRestaurantAsFavorite(restaurantID, true);
+      }
     };
-    return markRestaurantAsFavoriteFunc;
+    return toggleRestaurantAsFavoriteFunc;
   })();
   li.append(favImage);
   const name = document.createElement('h2');

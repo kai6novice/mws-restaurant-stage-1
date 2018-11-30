@@ -100,40 +100,56 @@ self.addEventListener('activate', event => {
     */
 });
 self.addEventListener('fetch', event => {
+    let fetchRequest = event.request.clone();
     const url = new URL(event.request.url);
     console.log('got fetch request for: ' + url.href);
     console.log('request origin is: ' + url.origin);
     console.log('location origin: ' + location.origin);
-    console.log('trying fetching ' + event.request.url + ' from cache');
-    let promiseToGetCache = caches.open('restaurant-cache-v1');
-    let promiseToGetCachedResponse = promiseToGetCache.then(cache => {
-        console.log('got cache at fetch');
-        console.log('try to find ' + url.pathname + ' in cache');
-        return cache.match(event.request);
-    });
-    let promiseToGetResponse = promiseToGetCachedResponse.then(response => {
-        if (!response) {
-            console.log('did not find ' + url.href + ' in cache');
-            console.log('initiate fetch');
-            let promiseToFetchRequest = fetch(event.request);
-            let promiseFetchedRequest = promiseToFetchRequest.then(fetchedResponse => {
-                console.log('fetched new copy')
-                promiseToGetCache.then(cache => {
-                    console.log('try to add new fetched file to cache')
-                    cache.put(event.request,fetchedResponse.clone());
-                }).catch(err=>err);
-                console.log('resolve the fetched response');
+    if(url.port=="1337"){
+        console.log('not caching anything from port 1337');
+        console.log('returning fetch... ');
+        let promiseToFetchFromServer = fetch(fetchRequest);
+        let promiseToFetchBackEndData = promiseToFetchFromServer.then(fetchedResponse =>{
+            if(fetchedResponse.ok){
                 return fetchedResponse;
-            }).catch(err =>{
-                return new Response('<p>Problem fetching response</p>');
-            });
-            return promiseFetchedRequest;
-        } else {
-            console.log('found ' + url.pathname + ' in cache and return cached data');
-            return response;
-        }
-    })
-    event.respondWith(promiseToGetResponse);
+            }
+            throw Error(fetchedResponse.statusText);
+        }).catch(err=>{
+            throw Error('cannot fetch from backend');
+        })
+        event.respondWith(promiseToFetchBackEndData);
+    }else{
+        console.log('trying fetching ' + event.request.url + ' from cache');
+        let promiseToGetCache = caches.open('restaurant-cache-v1');
+        let promiseToGetCachedResponse = promiseToGetCache.then(cache => {
+            console.log('got cache at fetch');
+            console.log('try to find ' + url.pathname + ' in cache');
+            return cache.match(event.request);
+        });
+        let promiseToGetResponse = promiseToGetCachedResponse.then(response => {
+            if (!response) {
+                console.log('did not find ' + url.href + ' in cache');
+                console.log('initiate fetch');
+                let promiseToFetchRequest = fetch(fetchRequest);
+                let promiseFetchedRequest = promiseToFetchRequest.then(fetchedResponse => {
+                    console.log('fetched new copy')
+                    promiseToGetCache.then(cache => {
+                        console.log('try to add new fetched file to cache')
+                        cache.put(event.request,fetchedResponse.clone());
+                    }).catch(err=>err);
+                    console.log('resolve the fetched response');
+                    return fetchedResponse;
+                }).catch(err =>{
+                    return new Response('<p>Problem fetching response</p>');
+                });
+                return promiseFetchedRequest;
+            } else {
+                console.log('found ' + url.pathname + ' in cache and return cached data');
+                return response;
+            }
+        })
+        event.respondWith(promiseToGetResponse);
+    }
     /* example of serving file from cache
         //event.respondWith(fetch)
         //event.respondWith(push)

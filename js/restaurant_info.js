@@ -67,6 +67,8 @@ fetchRestaurantFromURL = (callback) => {
     callback(error, null);
   } else {
     DBHelper.fetchRestaurantById(id, (error, restaurant) => {
+      console.log('got a restaurant from');
+      console.log(restaurant);
       self.restaurant = restaurant;
       if (!restaurant) {
         console.log('failed to fetch restaurant by id: ' + id);
@@ -100,17 +102,25 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   }
   image.setAttribute('alt', restaurant.name + '\'s image');
   const favImage = document.getElementById('favImage');
-  if(restaurant.is_favorite){
-    favImage.className='isFavorite';
-  }else{
-    favImage.className='notFavorite';
+  if (restaurant.is_favorite=="true") {
+    favImage.className = 'isFavorite';
+  } else {
+    favImage.className = 'notFavorite';
   }
   const restaurantID = restaurant.id;
   favImage.onclick = (function(){
-    const markRestaurantAsFavoriteFunc = function(){
-        alert('registering restaurant: '+restaurantID+' as favorite');
+    let toggleRestaurantAsFavoriteFunc = function(){
+      if (this.className=="isFavorite"){
+        //alert('registering restaurant: '+restaurantID+' as not favorite');
+        this.className = "notFavorite";
+        DBHelper.markRestaurantAsFavorite(restaurantID, false);
+      }else{
+        //alert('registering restaurant: '+restaurantID+' as favorite');
+        this.className = "isFavorite";
+        DBHelper.markRestaurantAsFavorite(restaurantID, true);
+      }
     };
-    return markRestaurantAsFavoriteFunc;
+    return toggleRestaurantAsFavoriteFunc;
   })();
   const cuisine = document.getElementById('restaurant-cuisine');
   console.log('set cuisine into innerHTML');
@@ -123,13 +133,13 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   }
   // fill reviews
   console.log('set review');
-  const promiseToFetchRestaurantReviews = DBHelper.promiseToFetchRestaurantReviews(restaurantID);
-  promiseToFetchRestaurantReviews.then(restaurantReviews=>{
-    fillReviewsHTML(restaurantReviews);
-  }).catch(err=>{
-    console.log('problem trying to fetch restaurant reviews');
-    console.log(err);
-    fillReviewsHTML();
+  DBHelper.fetchRestaurantReviews(restaurantID, (error, restaurantReviews) => {
+    if (error) {
+      console.error(error);
+      fillReviewsHTML();
+    } else {
+      fillReviewsHTML(restaurantReviews);
+    }
   });
 }
 
@@ -187,7 +197,7 @@ createReviewHTML = (review) => {
 
   const date = document.createElement('p');
   //date.innerHTML = review.date;
-  date.innerHTML = new Date(review.createdAt).toLocaleDateString()|| '';
+  date.innerHTML = new Date(review.createdAt).toLocaleDateString() || '';
   date.className = 'review-date';
   li.appendChild(date);
 
@@ -229,3 +239,54 @@ getParameterByName = (name, url) => {
     return '';
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
+
+submitNewReview = () => {
+  let form = document.getElementById("reviewForm");
+  let name = form.elements.namedItem('name').value;
+  let rating = form.elements.namedItem('rating').value;
+  let comments = form.elements.namedItem('comments').value;
+  let restaurantID = (new URL(document.location)).searchParams.get("id");
+  //console.log(form);
+  alert('submit new review for restaurant: ' + restaurantID);
+  let promiseToAddNewReview = DBHelper.promiseToAddNewReview(restaurantID, name, rating, comments);
+  let promiseToRefreshReviewHTML = promiseToAddNewReview.then(() => {
+    alert('clearing review html');
+    clearReviewHTML();
+    alert('cleared review html');
+    DBHelper.fetchRestaurantReviews(restaurantID, (error, restaurantReviews) => {
+      if (error) {
+        console.error(error);
+        fillReviewsHTML();
+      } else {
+        console.log('filling review html');
+        fillReviewsHTML(restaurantReviews);
+        console.log('filled review html');
+      }
+    });
+    return "";
+  }).catch(err => {
+    console.log('problem adding new review');
+    console.log(err);
+    return Promise.resolve("");
+  });
+  promiseToRefreshReviewHTML.then(() => {
+    console.log('resetting review form');
+    document.getElementById("reviewForm").reset();
+    console.log('reseted review form');
+  }).catch(err => {
+    console.log('problem refresh review html');
+    console.log(err);
+  });
+};
+clearNewReview = () => {
+  //alert('clear new review');
+};
+clearReviewHTML = () => {
+  const container = document.getElementById('reviews-container');
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
+  }
+  const reviewList = document.createElement('ul');
+  reviewList.id = "reviews-list";
+  container.appendChild(reviewList);
+};

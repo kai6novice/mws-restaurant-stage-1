@@ -205,10 +205,12 @@ nav h1 a {
   left: 30px;
 }
 #restaurants-list li img#favImage.notFavorite, .inside #restaurant-container img#favImage.notFavorite{
-  content: url("/img/Empty_Star.svg");
+  background-image: url(/img/Empty_Star.svg);
+  background-repeat: no-repeat;
 }
 #restaurants-list li img#favImage.isFavorite, .inside #restaurant-container img#favImage.isFavorite{
-  content: url("/img/Gold_Star.svg");
+  background-image: url(/img/Gold_Star.svg);
+  background-repeat: no-repeat;
 }
 #restaurants-list p {
   margin: 0;
