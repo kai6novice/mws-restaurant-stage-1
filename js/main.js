@@ -172,22 +172,23 @@ createRestaurantHTML = (restaurant) => {
   image.alt = restaurant.name + '\'s thumbnail';
   li.append(image);
   const favImage = document.createElement('img');
-  favImage.id= 'favImage';
+  favImage.className= 'favImage';
+  favImage.alt= 'toggle '+restaurant.name+' as favorite';
   if(restaurant.is_favorite=="true"){
-    favImage.className = 'isFavorite';
+    favImage.classList.add('isFavorite');
   }else{
-    favImage.className = 'notFavorite';
+    favImage.classList.add('notFavorite');
   }
   let restaurantID = restaurant.id;
   favImage.onclick = (function(){
     let toggleRestaurantAsFavoriteFunc = function(){
-      if (this.className=="isFavorite"){
+      if (this.classList.contains("isFavorite")){
         //alert('registering restaurant: '+restaurantID+' as not favorite');
-        this.className = "notFavorite";
+        this.classList.replace("isFavorite","notFavorite");
         DBHelper.markRestaurantAsFavorite(restaurantID, false);
       }else{
         //alert('registering restaurant: '+restaurantID+' as favorite');
-        this.className = "isFavorite";
+        this.classList.replace("notFavorite","isFavorite");
         DBHelper.markRestaurantAsFavorite(restaurantID, true);
       }
     };

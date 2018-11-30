@@ -46,7 +46,7 @@
     <section id="restaurant-container">
       <h2 id="restaurant-name"></h2>
       <img id="restaurant-img">
-      <img id="favImage"></img>
+      <img class="favImage"></img>
       <p id="restaurant-cuisine"></p>
       <p id="restaurant-address"></p>
       <table id="restaurant-hours"></table>
@@ -62,7 +62,7 @@
         <input type="text" id="name" /><br>
         <label for="rating">Rating</label>
         <input type="number" id="rating" min="1" max="5" required/><br>
-        <label for="comment">Comments</label>
+        <label for="comments">Comments</label>
         <textarea rows="4" cols="20" id="comments"></textarea><br>
         <button type="reset">Clear</button>
         <button type="button" onclick="submitNewReview()">Submit Review</button>

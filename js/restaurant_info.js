@@ -101,22 +101,23 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
     //image.setAttribute('sizes','350w 50vw');
   }
   image.setAttribute('alt', restaurant.name + '\'s image');
-  const favImage = document.getElementById('favImage');
-  if (restaurant.is_favorite=="true") {
-    favImage.className = 'isFavorite';
+  const favImage = document.querySelector('img.favImage');
+  favImage.alt = 'toggle ' + restaurant.name + ' as favorite';
+  if (restaurant.is_favorite == "true") {
+    favImage.classList.add('isFavorite');
   } else {
-    favImage.className = 'notFavorite';
+    favImage.classList.add('notFavorite');
   }
   const restaurantID = restaurant.id;
-  favImage.onclick = (function(){
-    let toggleRestaurantAsFavoriteFunc = function(){
-      if (this.className=="isFavorite"){
+  favImage.onclick = (function () {
+    let toggleRestaurantAsFavoriteFunc = function () {
+      if (this.classList.contains("isFavorite")) {
         //alert('registering restaurant: '+restaurantID+' as not favorite');
-        this.className = "notFavorite";
+        this.classList.replace("isFavorite", "notFavorite");
         DBHelper.markRestaurantAsFavorite(restaurantID, false);
-      }else{
+      } else {
         //alert('registering restaurant: '+restaurantID+' as favorite');
-        this.className = "isFavorite";
+        this.classList.replace("notFavorite", "isFavorite");
         DBHelper.markRestaurantAsFavorite(restaurantID, true);
       }
     };
